@@ -6,6 +6,7 @@ import java_cup.runtime.*;
 import Backend.CupYFlex.ErrorS;
 import Backend.Compilador.Compilador;
 import java.util.ArrayList;
+import Frontend.Principal;
 
 parser code 
 
@@ -44,15 +45,15 @@ terminal    DIGITO, PUNTO, NOMBREID, VERSIONID, AUTORID, LANZAMIENTOID, EXTENSIO
             COMA;
 
 non terminal    S, inicio, cuerpo, informacion , informacionOP, codFuente, declaracionSNTerminales, SNterminales,
-                declaracionExpresiones, declaracionGramatica, cuerpoGramatica,decSNTerminales, codJava;
+                declaracionExpresiones, declaracionGramatica, cuerpoGramatica,decSNTerminales;
 
 non terminal Nodo Expresion, ExpresionesR, expresionesRegulares;
 
-non terminal String simbolsF;
+non terminal String simbolsF, codJava;
 
 start with S;
 
-S::=  NOMBREID  ID:id PUNTOYCOMA {:compilador = new Compilador(id.toString());:} informacion inicio
+S::=  NOMBREID  ID:id PUNTOYCOMA {:compilador = new Compilador(id.toString()); Principal.compiladores.add(compilador);:} informacion inicio
      |NOMBREID ID:id PUNTOYCOMA {:compilador = new Compilador(id.toString());:} inicio;
 
 inicio::=    inicio PORCIENTO PORCIENTO cuerpo
@@ -70,10 +71,11 @@ cuerpo::=    codFuente {::}
 informacion::=  informacion informacionOP {::}
                 |informacionOP {::};
 
-informacionOP::= VERSIONID DOSPUNTOS NVERSION:id PUNTOYCOMA {:compilador.setVersion(id.toString());:}
-                |AUTORID DOSPUNTOS ID:id PUNTOYCOMA {:compilador.setAutor(id.toString());:}
-                |LANZAMIENTOID DOSPUNTOS ID:id  PUNTOYCOMA {:compilador.setLanzamiento(id.toString());:} 
-                |EXTENSIONID DOSPUNTOS ID:id PUNTOYCOMA{:compilador.setExtension(id.toString());:};
+informacionOP::= VERSIONID  NVERSION:id PUNTOYCOMA {:compilador.setVersion(id.toString());:}
+                |AUTORID  codJava :id PUNTOYCOMA {:compilador.setAutor(id.toString());:}
+                |LANZAMIENTOID  NVERSION:id  PUNTOYCOMA {:compilador.setLanzamiento(id.toString());:} 
+                |EXTENSIONID  ID:id PUNTOYCOMA{:compilador.setExtension(id.toString());:};
+
 
 declaracionSNTerminales::=  decSNTerminales decSNTerminales;
 
@@ -212,8 +214,8 @@ cuerpoGramatica::=  cuerpoGramatica BARRAO ID LLAVEABRE codJava LLAVECIERRA
                             :}
                     |ID;
 
-codJava ::=   codJava ID
-            |ID;
+codJava ::=   codJava:id1 ID:id {:String res=  id1.toString() + id.toString(); RESULT= res;:}
+            |ID:id {:RESULT= id.toString();:};
 
 codFuente::=        codJava{::};
 
