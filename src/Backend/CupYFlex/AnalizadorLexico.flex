@@ -46,6 +46,17 @@ Barra = "\|"
 %%
 
 
+
+<YYINITIAL> "/*"           {yybegin(COMENT_MULTI);}
+<COMENT_MULTI> "*/"        {yybegin(YYINITIAL);}
+<COMENT_MULTI>[^\n]          {}
+<COMENT_MULTI> [\r|\r\n\f] {}
+
+
+<YYINITIAL> "//"          {yybegin(COMENT_SIMPLE);}
+<COMENT_SIMPLE> .       {}
+<COMENT_SIMPLE> "\n"       {yybegin(YYINITIAL);}
+
 //simbolos
 <YYINITIAL> {
     
@@ -94,14 +105,3 @@ Barra = "\|"
     (" ")+ {System.out.println("espacio");}
     .                               {System.out.println( "Caracter no reconocido: "+ yytext());}
 }
-
-
-<YYINITIAL> "/*"           {yybegin(COMENT_MULTI);}
-<COMENT_MULTI> "*/"        {yybegin(YYINITIAL);}
-<COMENT_MULTI>  .          {}
-<COMENT_MULTI> [\r|\r\n\f] {}
-
-
-<YYINITIAL> "//"          {yybegin(COMENT_MULTI);}
-<COMENT_MULTI>[^\n]            {}
-<COMENT_MULTI> "\n"            {yybegin(YYINITIAL);}
