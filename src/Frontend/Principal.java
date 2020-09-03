@@ -342,7 +342,7 @@ public class Principal extends javax.swing.JFrame {
 
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-
+        System.out.println("entrandi archivo");
         //FileNameExtensionFilter imgFilter = new FileNameExtensionFilter("TEXT FILES", "len");
         //fileChooser.setFileFilter(imgFilter);
         int result = fileChooser.showOpenDialog(this);
@@ -350,13 +350,17 @@ public class Principal extends javax.swing.JFrame {
             File fileName = fileChooser.getSelectedFile();
             if ((fileName == null) || (fileName.getName().equals(""))) {
             } else {
-
                 try {
                     verificarExistenciaTab(fileName.getName(), fileName);
                     formatos.add(fileName.getName());
                 } catch (Exception e) {
                     System.out.println(e);
                     JOptionPane.showMessageDialog(null, "Error cargando Archivo");
+                }
+                if (editor == false) {
+                    editor = true;
+                    panelEditor.setVisible(true);
+                    
                 }
                 // txt.setText(fileName.getAbsolutePath());
             }
@@ -428,15 +432,19 @@ public class Principal extends javax.swing.JFrame {
             if ((fileName == null) || (fileName.getName().equals(""))) {
             } else {
                 try {
-                    AnalizadorLexico lexico = new AnalizadorLexico(new BufferedReader(new StringReader(ManejadorArchivo.leerArchivo(fondo))));
+                    
+                    AnalizadorLexico lexico = new AnalizadorLexico(new BufferedReader(new StringReader(ManejadorArchivo.LeerArchivo(fileName.getPath()))));
                     parser parser1 = new parser(lexico);
                     parser1.parse();
+                    CargarNuevoLenguaje();
                 } catch (Exception ex) {
-                    System.out.println("error ..." + ex);
+                    System.out.println("error..." );
+                     ex.printStackTrace();
+                    
                 }
             }
         }
-        CargarNuevoLenguaje();
+       
     }//GEN-LAST:event_btnCargarLActionPerformed
 
     private void btnBorrarLActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBorrarLActionPerformed
@@ -542,7 +550,15 @@ public class Principal extends javax.swing.JFrame {
         if (aux) {
             JOptionPane.showMessageDialog(rootPane, "ya tiene un documento con ese mismo nombre");
         } else if (!aux) {
-            Editor editor = new Editor("");
+            Editor editor;
+            LectorArchivo lector = new LectorArchivo();
+            if(doc!=null){
+                editor = new Editor(lector.IdentificarDatos(doc.getAbsolutePath()));
+            }else{
+                editor = new Editor("");
+            }
+           
+            
             editor.setDocumento(doc);
             documentos.add(editor);
             panelArchivos.addTab(nombre, editor);

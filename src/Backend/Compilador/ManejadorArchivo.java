@@ -5,6 +5,7 @@
  */
 package Backend.Compilador;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
@@ -16,25 +17,25 @@ import java.io.IOException;
  * @author astridmc
  */
 public class ManejadorArchivo {
-    
-    
-     public static String  leerArchivo(String path) {
-        String texto="";
+
+    public static String LeerArchivo(String path) {
+        String texto = "";
+         String texto2 = "";
         try (FileReader entrada = new FileReader(path)) {
-            int c = 0;
-            while (c != -1) {
-                c = entrada.read();
-                char letra = (char) c;
-                texto += letra;
+            
+        BufferedReader bf = new BufferedReader(entrada);
+            while ((texto2 = bf.readLine())  != null) {
+               texto=texto+texto2+"\n";
             }
+            System.out.println(texto);
             return texto;
         } catch (IOException e) {
-            System.out.println("No se ha encontrado el archivo");
+            System.out.println("No se ha encontrado el archivo \\n");
             return "";
         }
     }
-     
-    public static void GuardarArchivo(String ruta,String contenido){
+
+    public static void GuardarArchivo(String ruta, String contenido) {
         try {
             File file = new File(ruta);
             // Si el archivo no existe es creado

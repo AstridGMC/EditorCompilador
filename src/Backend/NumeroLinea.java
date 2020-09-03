@@ -43,7 +43,7 @@ public class NumeroLinea extends JPanel
     public NumeroLinea(JTextComponent component, int minimumDisplayDigits) {
         this.component = component;
 
-        setFont(component.getFont());
+        setFont(new java.awt.Font("Ubuntu", 0, 18)); // NOI18N;
 
         setBorderGap(5);
         setCurrentLineForeground(color1);

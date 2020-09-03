@@ -65,6 +65,7 @@ public class Editor extends javax.swing.JPanel {
         AreaTexto = new javax.swing.JTextArea();
 
         AreaTexto.setColumns(20);
+        AreaTexto.setFont(new java.awt.Font("Ubuntu", 0, 18)); // NOI18N
         AreaTexto.setRows(5);
         scrollPane.setViewportView(AreaTexto);
 

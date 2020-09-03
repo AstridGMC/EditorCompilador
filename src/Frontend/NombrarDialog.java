@@ -57,7 +57,7 @@ public class NombrarDialog extends javax.swing.JDialog {
         jLabel1.setText("Nombre:");
         jLabel1.setOpaque(true);
 
-        nombreTxt.setFont(new java.awt.Font("Century Schoolbook L", 0, 24)); // NOI18N
+        nombreTxt.setFont(new java.awt.Font("Century Schoolbook L", 0, 36)); // NOI18N
         nombreTxt.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 nombreTxtActionPerformed(evt);

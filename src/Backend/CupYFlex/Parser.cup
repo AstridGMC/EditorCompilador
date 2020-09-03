@@ -38,13 +38,13 @@ action code {:
 :}
 
 
-terminal    DIGITO, PUNTO, NOMBREID, VERSIONID, AUTORID, LANZAMIENTOID, EXTENSIONID, TERMINALID,  NOTERMINALID, JAVACODE, ID,
-            PORCIENTO, IGUAL, LLAVEABRE, LLAVECIERRA, CORCHETECIERRA, CORCHETEABRE, PARABRE, PARCIERRA,  ASTERISCO,
-            DOSPUNTOS, PUNTOYCOMA, INTERROGACIONC, BARRAO, GUION, SALTOLINEA, TABULADOR, ESPACIOBLANCO, SIMMAS, COMILLA, CODIGOJ,
+terminal    DIGITO, PUNTO, NOMBREID, VERSIONID, AUTORID, LANZAMIENTOID, EXTENSIONID, TERMINALID,  NOTERMINALID, ID,
+            PORCIENTO, IGUAL, LLAVEABRE, LLAVECIERRA, CORCHETECIERRA, CORCHETEABRE, PARABRE, PARCIERRA,  ASTERISCO,NVERSION,
+            DOSPUNTOS, PUNTOYCOMA, INTERROGACIONC, BARRAO, GUION, SALTOLINEA, TABULADOR, ESPACIOBLANCO, SIMMAS, COMILLA,
             COMA;
 
 non terminal    S, inicio, cuerpo, informacion , informacionOP, codFuente, declaracionSNTerminales, SNterminales,
-                declaracionExpresiones, declaracionGramatica, cuerpoGramatica,decSNTerminales;
+                declaracionExpresiones, declaracionGramatica, cuerpoGramatica,decSNTerminales, codJava;
 
 non terminal Nodo Expresion, ExpresionesR, expresionesRegulares;
 
@@ -52,11 +52,11 @@ non terminal String simbolsF;
 
 start with S;
 
-S::= NOMBREID  ID:id PUNTOYCOMA {:compilador = new Compilador(id.toString());:} informacion inicio
+S::=  NOMBREID  ID:id PUNTOYCOMA {:compilador = new Compilador(id.toString());:} informacion inicio
      |NOMBREID ID:id PUNTOYCOMA {:compilador = new Compilador(id.toString());:} inicio;
 
-inicio::=    inicio cuerpo
-            |cuerpo;
+inicio::=    inicio PORCIENTO PORCIENTO cuerpo
+            | PORCIENTO PORCIENTO cuerpo;
 
 
 
@@ -70,7 +70,7 @@ cuerpo::=    codFuente {::}
 informacion::=  informacion informacionOP {::}
                 |informacionOP {::};
 
-informacionOP::= VERSIONID DOSPUNTOS ID:id PUNTOYCOMA {:compilador.setVersion(id.toString());:}
+informacionOP::= VERSIONID DOSPUNTOS NVERSION:id PUNTOYCOMA {:compilador.setVersion(id.toString());:}
                 |AUTORID DOSPUNTOS ID:id PUNTOYCOMA {:compilador.setAutor(id.toString());:}
                 |LANZAMIENTOID DOSPUNTOS ID:id  PUNTOYCOMA {:compilador.setLanzamiento(id.toString());:} 
                 |EXTENSIONID DOSPUNTOS ID:id PUNTOYCOMA{:compilador.setExtension(id.toString());:};
@@ -207,13 +207,15 @@ declaracionGramatica::= ID DOSPUNTOS DOSPUNTOS cuerpoGramatica
                             {:
                             :};
 
-cuerpoGramatica::=  cuerpoGramatica BARRAO ID CODIGOJ
+cuerpoGramatica::=  cuerpoGramatica BARRAO ID LLAVEABRE codJava LLAVECIERRA
                             {:
                             :}
                     |ID;
 
+codJava ::=   codJava ID
+            |ID;
 
-codFuente::=        JAVACODE{::};
+codFuente::=        codJava{::};
 
                     
                     
