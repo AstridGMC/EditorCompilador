@@ -1,0 +1,219 @@
+package Backend.CupYFlex;
+
+import Backend.AnalizadorLexico.Nodo;
+import java.util.LinkedList;
+import java_cup.runtime.*;
+import Backend.CupYFlex.ErrorS;
+import Backend.Compilador.Compilador;
+import java.util.ArrayList;
+
+parser code 
+
+{:
+    public void syntax_error(Symbol s){
+        String lexema = s.value.toString();
+        int fila =  s.right;
+        int columna = s.left;
+        String red="\033[31m"; 
+        System.out.println(red + "ERROR SINTACTICO RECUPERADO!! \t\tLexema: " + lexema+ "\t\tFila " + fila +"\t\tColumna: " +columna+"simbolo"  );
+        ErrorS error = new ErrorS(lexema, fila, columna , "error Sintactico");
+        ErrorS.tablaErroresSintacticos.add(error);
+    }
+
+    public void unrrecovered_syntax_error(Symbol s) throws java.lang.Exception {
+        String lexema = s.value.toString();
+        int fila = s.right;
+        int columna = s.left;
+        String red="\033[31m"; 
+        System.out.println(red + "ERROR SINTACTICO SIN RECUPERACION!! \t\tLexema: " + lexema+ "\t\tFila " + fila +"\t\tColumna: " +columna );
+        ErrorS error = new ErrorS(lexema, fila, columna , "error Sintactico");
+        ErrorS.tablaErroresSintacticos.add(error);
+    }
+:}
+
+//---------->
+action code {:
+    int numNodo=1;
+    Compilador compilador;
+:}
+
+
+terminal    DIGITO, PUNTO, NOMBREID, VERSIONID, AUTORID, LANZAMIENTOID, EXTENSIONID, TERMINALID,  NOTERMINALID, JAVACODE, ID,
+            PORCIENTO, IGUAL, LLAVEABRE, LLAVECIERRA, CORCHETECIERRA, CORCHETEABRE, PARABRE, PARCIERRA,  ASTERISCO,
+            DOSPUNTOS, PUNTOYCOMA, INTERROGACIONC, BARRAO, GUION, SALTOLINEA, TABULADOR, ESPACIOBLANCO, SIMMAS, COMILLA, CODIGOJ,
+            COMA;
+
+non terminal    S, inicio, cuerpo, informacion , informacionOP, codFuente, declaracionSNTerminales, SNterminales,
+                declaracionExpresiones, declaracionGramatica, cuerpoGramatica,decSNTerminales;
+
+non terminal Nodo Expresion, ExpresionesR, expresionesRegulares;
+
+non terminal String simbolsF;
+
+start with S;
+
+S::= NOMBREID  ID:id PUNTOYCOMA {:compilador = new Compilador(id.toString());:} informacion inicio
+     |NOMBREID ID:id PUNTOYCOMA {:compilador = new Compilador(id.toString());:} inicio;
+
+inicio::=    inicio cuerpo
+            |cuerpo;
+
+
+
+cuerpo::=    codFuente {::}
+            |declaracionExpresiones {::}
+            |declaracionSNTerminales {::}
+            |declaracionGramatica {::}
+            |error;
+
+
+informacion::=  informacion informacionOP {::}
+                |informacionOP {::};
+
+informacionOP::= VERSIONID DOSPUNTOS ID:id PUNTOYCOMA {:compilador.setVersion(id.toString());:}
+                |AUTORID DOSPUNTOS ID:id PUNTOYCOMA {:compilador.setAutor(id.toString());:}
+                |LANZAMIENTOID DOSPUNTOS ID:id  PUNTOYCOMA {:compilador.setLanzamiento(id.toString());:} 
+                |EXTENSIONID DOSPUNTOS ID:id PUNTOYCOMA{:compilador.setExtension(id.toString());:};
+
+declaracionSNTerminales::=  decSNTerminales decSNTerminales;
+
+decSNTerminales::=      TERMINALID SNterminales {::}
+                        |NOTERMINALID SNterminales {::};
+
+SNterminales::=     SNterminales COMA ID{::}
+                    |ID{::};
+   
+declaracionExpresiones::=   ID IGUAL expresionesRegulares PUNTOYCOMA 
+                            |INTERROGACIONC IGUAL expresionesRegulares PUNTOYCOMA;
+
+expresionesRegulares::=     expresionesRegulares:ei  ExpresionesR:ed
+                                     {:Nodo raiz = new Nodo("·");
+                                      raiz.setIzquierdo(ei);
+                                      raiz.setDerecho(ed);
+                                      raiz.setAnulable(raiz.anulable(raiz));
+                                      raiz.setPrimeros( raiz.AgregarPrimeros(raiz));
+                                      raiz.setUltimos(raiz.AgregarUltimos(raiz));
+                                      RESULT = raiz;:}
+                            |LLAVEABRE expresionesRegulares:e LLAVECIERRA {:RESULT= e;:}
+                            |PARABRE expresionesRegulares:e PARCIERRA  {:RESULT= e;:}
+                            |ExpresionesR:e {:RESULT= e;:};
+
+
+ExpresionesR::=             ExpresionesR:e simbolsF:sim
+                                    {:Nodo raiz = new Nodo(sim);
+                                      raiz.setIzquierdo(e);
+                                      raiz.setAnulable(raiz.anulable(raiz));
+                                      raiz.setPrimeros( raiz.AgregarPrimeros(e));
+                                      raiz.setUltimos(raiz.AgregarUltimos(e));
+                                      RESULT = raiz;:}
+                            |ExpresionesR:exp1 BARRAO Expresion:exp2  
+                                    {:
+                                        Nodo raiz = new Nodo("||");
+                                        raiz.setIzquierdo(exp1);
+                                        raiz.setDerecho(exp2);
+                                        raiz.setAnulable(raiz.anulable(raiz));
+                                        raiz.setPrimeros( raiz.AgregarPrimeros(raiz));
+                                        raiz.setUltimos(raiz.AgregarUltimos(raiz));
+                                        RESULT =raiz;
+                                    :}
+                            |Expresion:e {: RESULT =e;:};
+
+
+
+simbolsF::= SIMMAS {:RESULT= "++";:}
+            |INTERROGACIONC {:RESULT ="??";:}
+            |ASTERISCO {:RESULT = "**" ;:};
+
+
+Expresion::=         CORCHETEABRE ID:id1 GUION:guion ID:id2 CORCHETECIERRA 
+                        {:
+                            String exp= id1.toString()+ guion.toString()+id2.toString();
+                            if(exp=="A-Z"){
+                                exp= "L";
+                            }else if(exp == "1-9"){
+                                exp="num";
+                            }
+                            Nodo e =  new Nodo(exp, numNodo);
+                            numNodo++;
+                            e.getPrimeros().add(numNodo);
+                            e.getUltimos().add(numNodo);
+                            e.setAnulable(e.anulable(e));
+                            numNodo++;
+                            RESULT= e;
+                        :}
+                    |ID: id        {:
+                            Nodo nuevo = new Nodo(id.toString(), numNodo);
+                            nuevo.getPrimeros().add(numNodo);
+                            nuevo.getUltimos().add(numNodo);
+                            nuevo.setAnulable(nuevo.anulable(nuevo));
+                            numNodo++;
+                            RESULT = nuevo;
+                            :}
+                    |TABULADOR:e    {:
+                            Nodo nuevo = new Nodo(e.toString(), numNodo);
+                            nuevo.getPrimeros().add(numNodo);
+                            nuevo.getUltimos().add(numNodo);
+                            nuevo.setAnulable(nuevo.anulable(nuevo));
+                            numNodo++;
+                            RESULT = nuevo;
+                            :}
+                    |SALTOLINEA:e   {:
+                            Nodo nuevo = new Nodo(e.toString(), numNodo);
+                            nuevo.getPrimeros().add(numNodo);
+                            nuevo.getUltimos().add(numNodo);;
+                            nuevo.setAnulable(nuevo.anulable(nuevo));
+                            numNodo++;
+                            RESULT = nuevo;
+                            :}
+                    |ESPACIOBLANCO:e
+                            {:
+                            Nodo nuevo = new Nodo(e.toString(), numNodo);
+                            nuevo.getPrimeros().add(numNodo);
+                            nuevo.getUltimos().add(numNodo);
+                            nuevo.setAnulable(nuevo.anulable(nuevo));
+                            numNodo++;
+                            RESULT = nuevo;
+                            :}
+                    |DIGITO:e
+                            {:
+                            Nodo nuevo = new Nodo(e.toString(), numNodo);
+                            nuevo.getPrimeros().add(numNodo);
+                            nuevo.getUltimos().add(numNodo);
+                            nuevo.setAnulable(nuevo.anulable(nuevo));
+                            numNodo++;
+                            RESULT = nuevo;
+                            :}
+                    |PUNTO:e
+                            {:
+                            Nodo nuevo = new Nodo(e.toString(), numNodo);
+                            nuevo.getPrimeros().add(numNodo);
+                            nuevo.getUltimos().add(numNodo);
+                            nuevo.setAnulable(nuevo.anulable(nuevo));
+                            numNodo++;
+                            RESULT = nuevo;
+                            :}
+                    |COMILLA ID:e COMILLA
+                            {:
+                            Nodo nuevo = new Nodo(e.toString(), numNodo);
+                            nuevo.getPrimeros().add(numNodo);
+                            nuevo.getUltimos().add(numNodo);;
+                            nuevo.setAnulable(nuevo.anulable(nuevo));
+                            numNodo++;
+                            RESULT = nuevo;
+                            :};
+
+
+declaracionGramatica::= ID DOSPUNTOS DOSPUNTOS cuerpoGramatica
+                            {:
+                            :};
+
+cuerpoGramatica::=  cuerpoGramatica BARRAO ID CODIGOJ
+                            {:
+                            :}
+                    |ID;
+
+
+codFuente::=        JAVACODE{::};
+
+                    
+                    
